@@ -120,14 +120,14 @@ rule determine_availability_matrix_MD_UA:
         gebco=lambda w: ("data/bundle/GEBCO_2014_2D.nc"
                          if "max_depth" in config["renewable"][w.technology].keys()
                          else []),
-        country_shapes='resources/country_shapes.geojson',
-        offshore_shapes='resources/offshore_shapes.geojson',
-        regions=lambda w: ("resources/regions_onshore.geojson"
+        country_shapes='resources/'  + RDIR + 'country_shapes.geojson',
+        offshore_shapes='resources/'  + RDIR + 'offshore_shapes.geojson',
+        regions=lambda w: ('resources/'  + RDIR + 'regions_onshore.geojson'
                                    if w.technology in ('onwind', 'solar')
-                                   else "resources/regions_offshore.geojson"),
+                                   else 'resources/'  + RDIR + 'regions_offshore.geojson'),
         cutout=lambda w: "cutouts/" + config["renewable"][w.technology]['cutout'] + ".nc"
     output:
-        availability_matrix="resources/availability_matrix_MD-UA_{technology}.nc",
+        availability_matrix='resources/' + RDIR + 'availability_matrix_MD-UA_{technology}.nc',
     log:
         "logs/determine_availability_matrix_MD_UA_{technology}.log",
     benchmark:
@@ -377,7 +377,7 @@ rule build_ship_raster:
 # Optional input when having Ukraine (UA) or Moldova (MD) in the countries list
 if {"UA", "MD"}.intersection(set(config["countries"])):
     opt = {
-        "availability_matrix_MD_UA":"resources/availability_matrix_MD-UA_{technology}.nc"
+        "availability_matrix_MD_UA":"resources/" + RDIR +  "availability_matrix_MD-UA_{technology}.nc"
     }
 else:
     opt = {}
