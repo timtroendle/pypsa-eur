@@ -49,7 +49,9 @@ if __name__ == "__main__":
         snakemake = mock_snakemake("retrieve_databundle")
         rootpath = ".."
     else:
-        rootpath = "."
+        rootpath = Path(snakemake.output[0]).parent.parent.parent.as_posix()
+        for output in snakemake.output:
+            assert rootpath in output
     configure_logging(
         snakemake
     )  # TODO Make logging compatible with progressbar (see PR #102)
