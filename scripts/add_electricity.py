@@ -358,6 +358,37 @@ def attach_wind_and_solar(
             )
 
 
+def attach_biomass(n: pypsa.Network, parameters: dict[str: float], Nyears: int) -> None:
+    """Attach biomass to each node.
+
+    Without this, PyPSA-Eur will by default build (extendable) biomass only in those
+    nodes where it existed historically.
+    """
+    capital_cost = (
+        (
+            calculate_annuity(parameters["lifetime"], parameters["discount rate"])
+            + parameters["FOM"] / 100
+        )
+        * parameters["investment"]
+        * Nyears
+        * 1e3 # from kW to MW
+    )
+    marginal_cost = parameters["VOM"] + parameters["fuel"] / parameters["efficiency"]
+
+    # TODO add threshold on fuel
+    n.madd(
+        "Generator",
+        n.buses.index,
+        suffix=" biomass power plant",
+        bus=n.buses.index,
+        marginal_cost=marginal_cost,
+        capital_cost=capital_cost,
+        efficiency=parameters["efficiency"],
+        p_nom_extendable=True,
+        carrier="biomass"
+    )
+
+
 def attach_conventional_generators(
     n,
     costs,
@@ -779,6 +810,12 @@ if __name__ == "__main__":
         renewable_carriers,
         extendable_carriers,
         snakemake.config["lines"]["length_factor"],
+    )
+
+    attach_biomass(
+        n,
+        parameters=snakemake.params.biomass_parameters,
+        Nyears=Nyears
     )
 
     if "hydro" in renewable_carriers:

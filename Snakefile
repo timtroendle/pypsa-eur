@@ -466,6 +466,8 @@ rule add_electricity:
         ua_md_gdp='data/GDP_PPP_30arcsec_v3_mapped_default.csv',
     output:
         "networks/" + RDIR + "elec.nc",
+    params:
+        biomass_parameters = config["biomass"]
     log:
         "logs/" + RDIR + "add_electricity.log",
     benchmark:
