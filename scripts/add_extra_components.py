@@ -60,6 +60,7 @@ from add_electricity import (
     _add_missing_carriers_from_costs,
     add_nice_carrier_names,
     load_costs,
+    calculate_annuity
 )
 
 idx = pd.IndexSlice
@@ -227,6 +228,46 @@ def attach_hydrogen_pipelines(n, costs, elec_opts):
     )
 
 
+def attach_biomass(n: pypsa.Network, parameters: dict[str: float], Nyears: int) -> None:
+    """Attach biomass to each node.
+
+    Without this, PyPSA-Eur will by default build (extendable) biomass only in those
+    nodes where it existed historically.
+    """
+    capital_cost = (
+        (
+            calculate_annuity(parameters["lifetime"], parameters["discount rate"])
+            + parameters["FOM"] / 100
+        )
+        * parameters["investment"]
+        * Nyears
+        * 1e3 # from kW to MW
+    )
+    marginal_cost = parameters["VOM"] + parameters["fuel"] / parameters["efficiency"]
+
+    n.add("Bus", "biomass", carrier="biomass")
+    n.add(
+        "Store",
+        "biomass store",
+        bus="biomass",
+        e_initial=parameters["potential"],
+        e_nom=parameters["potential"]
+    )
+    n.madd(
+        "Link",
+        n.buses[n.buses.carrier == "AC"].index,
+        suffix=" biomass power plant",
+        bus0="biomass",
+        bus1=n.buses[n.buses.carrier == "AC"].index,
+        marginal_cost=marginal_cost * parameters["efficiency"],
+        capital_cost=capital_cost * parameters["efficiency"],
+        efficiency=parameters["efficiency"],
+        p_nom_extendable=True,
+        underwater_fraction=0,
+        carrier="biomass"
+    )
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
@@ -236,6 +277,7 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
     elec_config = snakemake.config["electricity"]
+    biomass_config = snakemake.params.biomass_parameters
 
     Nyears = n.snapshot_weightings.objective.sum() / 8760.0
     costs = load_costs(
@@ -245,6 +287,7 @@ if __name__ == "__main__":
     attach_storageunits(n, costs, elec_config)
     attach_stores(n, costs, elec_config)
     attach_hydrogen_pipelines(n, costs, elec_config)
+    attach_biomass(n, biomass_config, Nyears)
 
     add_nice_carrier_names(n, snakemake.config)
 

@@ -466,8 +466,6 @@ rule add_electricity:
         ua_md_gdp='data/GDP_PPP_30arcsec_v3_mapped_default.csv',
     output:
         "networks/" + RDIR + "elec.nc",
-    params:
-        biomass_parameters = config["biomass"]
     log:
         "logs/" + RDIR + "add_electricity.log",
     benchmark:
@@ -545,6 +543,8 @@ rule add_extra_components:
         "logs/" + RDIR + "add_extra_components/elec_s{simpl}_{clusters}.log",
     benchmark:
         "benchmarks/" + RDIR + "add_extra_components/elec_s{simpl}_{clusters}_ec"
+    params:
+        biomass_parameters = config["biomass"]
     threads: 1
     resources:
         mem_mb=3000,
