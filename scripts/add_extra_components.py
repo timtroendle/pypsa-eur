@@ -248,10 +248,11 @@ def attach_biomass(n: pypsa.Network, parameters: dict[str: float], Nyears: int) 
     n.add("Bus", "biomass", carrier="biomass")
     n.add(
         "Store",
-        "biomass store",
+        "biomassstore",
+        carrier="biomassstore",
         bus="biomass",
         e_initial=parameters["potential"],
-        e_nom=parameters["potential"]
+        e_nom_extendable=True,
     )
     n.madd(
         "Link",
