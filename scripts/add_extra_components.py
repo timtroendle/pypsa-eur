@@ -245,13 +245,22 @@ def attach_biomass(n: pypsa.Network, parameters: dict[str: float], Nyears: int) 
     )
     marginal_cost = parameters["VOM"] + parameters["fuel"] / parameters["efficiency"]
 
+    periods = n.snapshot_weightings.generators.sum()
     n.add("Bus", "biomass", carrier="biomass")
+    n.add(
+        "Generator",
+        "biomassinflow",
+        bus="biomass",
+        carrier="biomassinflow",
+        p_nom=parameters["potential"] / periods,
+        p_nom_extendable=False
+    )
     n.add(
         "Store",
         "biomassstore",
         carrier="biomassstore",
         bus="biomass",
-        e_initial=parameters["potential"],
+        e_cyclic=True,
         e_nom_extendable=True,
     )
     n.madd(

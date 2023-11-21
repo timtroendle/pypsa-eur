@@ -303,14 +303,14 @@ if __name__ == "__main__":
         if oo[0].startswith(tuple(suptechs)):
             carrier = oo[0]
             # handles only p_nom_max as stores and lines have no potentials
-            attr_lookup = {"p": "p_nom_max", "c": "capital_cost", "m": "marginal_cost", "e": "e_initial"}
+            attr_lookup = {"p": "p_nom_max", "c": "capital_cost", "m": "marginal_cost", "l": "p_nom"}
             attr = attr_lookup[oo[1][0]]
             factor = float(oo[1][1:])
             if carrier == "AC":  # lines do not have carrier
                 n.lines[attr] *= factor
             else:
-                if attr == "e_initial": # only stores have e_initial
-                    comps = {"Store"}
+                if attr == "p_nom": # only scale Generators
+                    comps = {"Generator"}
                 else:
                     comps = {"Generator", "Link", "StorageUnit", "Store"}
                 for c in n.iterate_components(comps):
